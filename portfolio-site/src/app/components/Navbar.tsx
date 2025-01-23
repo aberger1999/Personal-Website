@@ -13,23 +13,21 @@ export default function Navbar() {
     <nav className="fixed top-0 z-50 w-full bg-gray-900/90 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo/Name */}
           <Link href="/" className="text-xl font-bold text-white">
             Alex Berger
           </Link>
 
-          {/* Navigation Links */}
           <div className="flex space-x-8">
             <Link href="/" className={`text-sm font-medium ${isActive('/')}`}>
               Home
             </Link>
-            <Link href="/#about" className={`text-sm font-medium ${isActive('/#about')}`}>
+            <Link href="/about" className={`text-sm font-medium ${isActive('/about')}`}>
               About Me
             </Link>
-            <Link href="/#projects" className={`text-sm font-medium ${isActive('/#projects')}`}>
+            <Link href="/projects" className={`text-sm font-medium ${isActive('/projects')}`}>
               Projects
             </Link>
-            <Link href="/#contact" className={`text-sm font-medium ${isActive('/#contact')}`}>
+            <Link href="/contact" className={`text-sm font-medium ${isActive('/contact')}`}>
               Contact Me
             </Link>
           </div>
