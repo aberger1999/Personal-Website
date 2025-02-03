@@ -1,6 +1,5 @@
 export const metadata = {
-    title: 'Alex Berger | Contact',
-    description: 'Contact page for Alex Berger',
+    title: 'Contact',
   };
   
   export default function ContactLayout({

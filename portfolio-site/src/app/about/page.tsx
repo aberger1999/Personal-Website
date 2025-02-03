@@ -1,6 +1,5 @@
 export const metadata = {
-  title: 'Alex Berger | About',
-  description: 'About page for Alex Berger',
+  title: 'About',
 };
 
 export default function About() {

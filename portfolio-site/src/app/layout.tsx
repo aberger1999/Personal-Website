@@ -1,28 +1,27 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import Navbar from './components/Navbar';  // Updated import path
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Alex Berger | Portfolio',
-  description: 'Personal portfolio website',
-};
+  title: {
+    template: '%s | Alex Berger',
+    default: 'Alex Berger | Portfolio', // This is used when no other title is specified
+  },
+  description: 'Personal portfolio website of Alex Berger',
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en">
       <body className={inter.className}>
-        <Navbar />
-        <main className="pt-16">
-          {children}
-        </main>
+        {children}
       </body>
     </html>
-  );
+  )
 }

@@ -3,8 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 export const metadata = {
-  title: 'Alex Berger | Portfolio',
-  description: 'Personal portfolio and projects showcase',
+  title: 'Home',
 };
 
 export default function Home() {
