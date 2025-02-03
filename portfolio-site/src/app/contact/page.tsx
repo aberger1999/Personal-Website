@@ -37,7 +37,7 @@ export default function Contact() {
 
       setFormStatus({
         type: 'success',
-        message: 'Message sent successfully! I&apos;ll get back to you soon.',
+        message: 'Message sent successfully! I will get back to you soon.',
       });
     } catch {
       setFormStatus({
