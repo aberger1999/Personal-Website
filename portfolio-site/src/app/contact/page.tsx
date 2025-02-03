@@ -1,8 +1,3 @@
-export const metadata = {
-  title: 'Alex Berger | Contact',
-  description: 'Contact page for Alex Berger',
-};
-
 'use client';
 import { useState } from 'react';
 
