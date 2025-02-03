@@ -59,7 +59,7 @@ export default function Home() {
               </p>
               <p className="text-lg text-gray-600">
                 Currently specializing in full-stack development with a focus on React, Next.js, and modern backend technologies.
-                I'm dedicated to creating efficient, scalable solutions that solve real-world problems.
+                I&apos;m dedicated to creating efficient, scalable solutions that solve real-world problems.
               </p>
               <div className="mt-6">
                 <Link 
