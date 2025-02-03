@@ -58,7 +58,7 @@ export default function Contact() {
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-24">
-      <h1 className="mb-8 text-4xl font-bold text-gray-900">Contact Me</h1>
+      <h1 className="mb-8 text-4xl font-bold">Contact Me</h1>
       <div className="rounded-lg bg-white p-6 shadow-lg">
         <form id="contactForm" action={handleSubmit} className="space-y-6">
           {/* Basic Information */}
