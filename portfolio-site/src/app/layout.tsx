@@ -6,7 +6,7 @@ import Navbar from './components/Navbar';  // Updated import path
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Your Portfolio',
+  title: 'Alex Berger | Portfolio',
   description: 'Personal portfolio website',
 };
 
