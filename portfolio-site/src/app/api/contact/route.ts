@@ -2,22 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import nodemailer from 'nodemailer';
 
-// Email validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-// Create reusable transporter object using SMTP transport
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_APP_PASSWORD,
-  },
-});
-
-// Validate environment variables
-if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
-  throw new Error('Missing required environment variables for email configuration');
-}
 
 interface ContactFormData {
   name: string;
@@ -42,6 +27,23 @@ function sanitizeInput(str: string): string {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check environment variables
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
+      return NextResponse.json(
+        { error: 'Email service not configured' },
+        { status: 500 }
+      );
+    }
+
+    // Create transporter
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_APP_PASSWORD,
+      },
+    });
+
     const data = await request.json() as ContactFormData;
 
     // Validate required fields
