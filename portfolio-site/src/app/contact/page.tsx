@@ -60,7 +60,7 @@ export default function Contact() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-white mb-4">Contact Me</h1>
-          <p className="text-gray-400 text-lg">Let's get in touch! Fill out the form below.</p>
+          <p className="text-gray-400 text-lg">Let&apos;s get in touch! Fill out the form below.</p>
         </div>
 
         <div className="bg-gray-800 rounded-2xl shadow-xl p-8">
