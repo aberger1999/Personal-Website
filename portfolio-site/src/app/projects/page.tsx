@@ -1,3 +1,8 @@
+export const metadata = {
+  title: 'Alex Berger | Projects',
+  description: 'Projects page for Alex Berger',
+};
+
 export default function Projects() {
     return (
       <div className="container mx-auto max-w-6xl px-4 py-24">
