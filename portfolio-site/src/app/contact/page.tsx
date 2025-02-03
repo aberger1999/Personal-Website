@@ -1,31 +1,19 @@
 'use client';
 import { useState } from 'react';
 
+const MAX_MESSAGE_LENGTH = 1000; // Define the constant at the top
+
 export default function Contact() {
   const [formStatus, setFormStatus] = useState<{
     type: 'success' | 'error' | null;
     message: string;
   }>({ type: null, message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [messageLength, setMessageLength] = useState(0);
-  const MAX_MESSAGE_LENGTH = 1000;
+  const [messageLength, setMessageLength] = useState(0); // Add state for message length
 
   async function handleSubmit(formData: FormData) {
     setIsSubmitting(true);
     setFormStatus({ type: null, message: '' });
-
-    const data = {
-      name: formData.get('name'),
-      email: formData.get('email'),
-      phone: formData.get('phone'),
-      subject: formData.get('subject'),
-      contactMethod: formData.get('contactMethod'),
-      contactTime: formData.get('contactTime'),
-      socialLinks: formData.get('socialLinks'),
-      source: formData.get('source'),
-      message: formData.get('message'),
-      copyToSender: formData.get('copyToSender') === 'true',
-    };
 
     try {
       const response = await fetch('/api/contact', {
@@ -33,20 +21,25 @@ export default function Contact() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          name: formData.get('name'),
+          email: formData.get('email'),
+          message: formData.get('message'),
+        }),
       });
 
-      if (!response.ok) throw new Error('Failed to send message');
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
 
       const form = document.getElementById('contactForm') as HTMLFormElement;
       form.reset();
-      setMessageLength(0);
 
       setFormStatus({
         type: 'success',
-        message: 'Message sent successfully! I\'ll get back to you soon.',
+        message: 'Message sent successfully! I&apos;ll get back to you soon.',
       });
-    } catch (error) {
+    } catch {
       setFormStatus({
         type: 'error',
         message: 'Failed to send message. Please try again.',

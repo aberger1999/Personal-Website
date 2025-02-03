@@ -9,7 +9,7 @@ export default function Home() {
       <section className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800 px-4">
         <div className="text-center">
           <h1 className="mb-6 text-6xl font-bold text-white">
-            Hi, I'm <span className="text-blue-500">Alex Berger</span>
+            <span className="text-blue-500">Alex Berger</span>
           </h1>
           <p className="mb-8 text-xl text-gray-300">
             Data Scientist | Developer | Researcher
