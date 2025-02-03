@@ -42,9 +42,11 @@ export default function Home() {
             <div className="md:w-1/3">
               <div className="relative aspect-square w-full max-w-sm overflow-hidden rounded-lg">
                 {/* Replace with your headshot image */}
-                <img
+                <Image
                   src="/images/headshot.jpeg"
                   alt="Professional headshot"
+                  width={400}
+                  height={400}
                   className="h-full w-full object-cover"
                 />
               </div>
@@ -52,7 +54,7 @@ export default function Home() {
             {/* Professional Summary */}
             <div className="md:w-2/3">
               <p className="mb-6 text-lg text-gray-600">
-                I'm a passionate developer focused on creating beautiful and functional web applications. 
+                I&apos;m a passionate developer focused on creating beautiful and functional web applications. 
                 With expertise in modern web technologies, I bring ideas to life through code.
               </p>
               <p className="text-lg text-gray-600">
