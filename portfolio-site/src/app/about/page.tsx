@@ -25,7 +25,7 @@ export default function About() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="container mx-auto px-4 py-16">
         <div className="flex flex-col md:flex-row items-start gap-12 mb-16">
           <div className="md:w-1/3">
