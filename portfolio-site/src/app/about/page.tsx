@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { MapPin } from 'lucide-react';
 
 export const metadata = {
   title: 'About',
@@ -7,27 +8,26 @@ export const metadata = {
 export default function About() {
   const interests = [
     {
-      title: "Software Development",
-      icon: "💻",
-      description: "Full-stack development with modern technologies like React, Node.js, and TypeScript."
-    },
-    {
-      title: "Cloud Architecture",
-      icon: "☁️",
-      description: "Designing and implementing scalable cloud solutions using AWS and modern DevOps practices."
-    },
-    {
       title: "Machine Learning",
       icon: "🤖",
-      description: "Exploring AI/ML applications and keeping up with the latest developments in the field."
+      description: "Building and implementing ML models with a focus on deep learning and neural networks."
+    },
+    {
+      title: "Software Development",
+      icon: "💻",
+      description: "Creating efficient, scalable applications using modern frameworks and best practices."
+    },
+    {
+      title: "Data Driven Research",
+      icon: "📊",
+      description: "Conducting thorough analysis to uncover insights and drive strategic decisions."
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      {/* Hero Section with Photo */}
+    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
       <div className="container mx-auto px-4 py-16">
-        <div className="flex flex-col md:flex-row items-center gap-12 mb-16">
+        <div className="flex flex-col md:flex-row items-start gap-12 mb-16">
           <div className="md:w-1/3">
             <div className="relative w-84 h-84 mx-auto">
               <Image
@@ -38,40 +38,80 @@ export default function About() {
                 className="rounded-2xl shadow-2xl"
               />
             </div>
+            <div className="flex justify-center gap-4 mt-6">
+              <a 
+                href="/Alex_Berger_Resume.pdf" 
+                target="_blank"
+                className="bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition duration-300"
+              >
+                <span>View Resume</span>
+              </a>
+              <a 
+                href="/Alex_Berger_Resume.pdf" 
+                download
+                className="bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition duration-300"
+              >
+                <span>Download</span>
+              </a>
+            </div>
           </div>
-          <div className="md:w-2/3 pt-5">
-            <h1 className="text-4xl font-bold mb-4">About Me</h1>
-            <p className="text-xl text-gray-300 mb-6">
-              I am a data analyst with a strong background in data mining, 
-              deep learning, and machine learning. With hands-on experience in predictive analytics, 
-              database management, and advanced modeling techniques, I specialize in uncovering actionable 
-              insights to drive key business decisions. My expertise includes working with SQL, Python, TensorFlow, 
-              and Azure Data Studio, alongside a solid foundation in data visualization and algorithm development. I am passionate 
-              about leveraging data-driven solutions to solve complex problems and continuously enhance performance metrics. 
-              Currently, I am expanding my knowledge in deep learning and developing projects that showcase my technical skills, 
-              including image captioning models and interactive web applications.
+          <div className="md:w-2/3">
+            <h1 className="text-5xl font-bold mb-4">About Me</h1>
+            <div className="w-32 h-1 bg-blue-400 mb-6"></div>
+            <div className="flex items-center gap-2 mb-6">
+              <MapPin className="text-blue-400" />
+              <span className="text-gray-300">Collegeville, PA</span>
+            </div>
+            <p className="text-lg text-gray-300 mb-8 leading-relaxed">
+              I am a data analyst with a strong background in data mining, deep learning, 
+              and machine learning. With hands-on experience in predictive analytics, database management, 
+              and advanced modeling techniques, I specialize in uncovering actionable insights to drive 
+              key business decisions. My expertise includes working with SQL, Python, TensorFlow, 
+              and Azure Data Studio, alongside a solid foundation in data visualization and algorithm development. 
+              I am passionate about leveraging data-driven solutions to solve complex problems and continuously 
+              enhance performance metrics. Currently, I am expanding my knowledge in deep learning and developing 
+              projects that showcase my technical skills, including image captioning models and interactive web applications.
             </p>
-            <div className="space-y-4">
-              <h2 className="text-2xl font-semibold">Background</h2>
-              <p className="text-gray-300">
-              I hold a Bachelor of Science in Data Science with a minor in Mathematics from Eastern University, where I built a strong foundation 
-              in linear algebra, calculus, statistics, and artificial intelligence. Currently, I am pursuing a Master of Science in Data Science 
-              at the New Jersey Institute of Technology, focusing on machine learning and applied statistics. Professionally, 
-              I work as a Data Analyst for Institutional Research at Cedar Crest College. In this role, I manage data collection, analysis, and reporting 
-              to support strategic decision-making. I develop interactive dashboards using Power BI and deliver data-driven insights to senior leadership, 
-              ensuring data accuracy and clarity. My projects reflect a diverse skill set, from developing custom image classifiers and neural 
-              network chatbots to predictive analytics for sports performance and real estate price forecasting. I have also created comprehensive SQL 
-              databases for movie trivia and conducted in-depth statistical analyses without relying solely on machine learning models.
-              </p>
+
+            <div className="space-y-8">
+              <section>
+                <h2 className="text-2xl font-semibold mb-4">Education</h2>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-xl font-medium text-blue-400">Master of Science in Data Science</h3>
+                    <p className="text-gray-300">New Jersey Institute of Technology | Newark, NJ</p>
+                    <p className="text-gray-400">In Progress - Computational Track</p>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-medium text-blue-400">Bachelor of Science in Data Science</h3>
+                    <p className="text-gray-300">Eastern University | St. Davids, PA</p>
+                    <p className="text-gray-400">Minor in Mathematics</p>
+                  </div>
+                </div>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-semibold mb-4">Experience</h2>
+                <div>
+                  <h3 className="text-xl font-medium text-blue-400">Data Analyst</h3>
+                  <p className="text-gray-300">Institutional Research at Cedar Crest College</p>
+                  <p className="text-gray-400 mb-2">Current Position</p>
+                  <ul className="list-disc ml-4 space-y-2 text-gray-300">
+                    <li>Develop interactive dashboards using Power BI for strategic decision-making</li>
+                    <li>Manage comprehensive data collection, analysis, and reporting systems</li>
+                    <li>Deliver data-driven insights to senior leadership through detailed reports</li>
+                    <li>Create and maintain predictive models for institutional metrics</li>
+                  </ul>
+                </div>
+              </section>
             </div>
           </div>
         </div>
 
-        {/* Skills Section */}
         <div className="mb-16">
           <h2 className="text-2xl font-semibold mb-6">Skills & Tools</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {['Python', 'R', 'SQL', 'TypeScript', 'Google Cloud/AWS', 'PowerBI', 'Git', 'Excel'].map((tech) => (
+            {['Python', 'R', 'SQL', 'TypeScript', 'Google Cloud/AWS', 'Power BI', 'Git', 'Excel'].map((tech) => (
               <div 
                 key={tech} 
                 className="bg-gray-800 rounded-xl p-4 text-center hover:bg-gray-700 transition duration-300"
@@ -82,7 +122,6 @@ export default function About() {
           </div>
         </div>
 
-        {/* Areas of Interest */}
         <div>
           <h2 className="text-2xl font-semibold mb-8">Areas of Interest</h2>
           <div className="grid md:grid-cols-3 gap-8">

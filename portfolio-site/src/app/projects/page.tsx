@@ -9,7 +9,7 @@ import { Github, ExternalLink } from 'lucide-react';
 const projects = [
   {
     title: "Project Name",
-    description: "A brief description of the project and its main features. What problems does it solve?",
+    description: "A brief description of the project",
     image: "/images/project1.jpg",
     tags: ["React", "TypeScript", "Node.js"],
     githubUrl: "https://github.com/yourusername/project",
@@ -21,9 +21,9 @@ const projects = [
 
 export default function Projects() {
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="container mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold mb-8">My Projects</h1>
+        <h1 className="text-5xl font-bold mb-4">My Projects</h1>
         <p className="text-xl text-gray-300 mb-12">
           Here are some of the projects I've worked on. Each one taught me something new.
         </p>
@@ -44,8 +44,7 @@ export default function Projects() {
               <div className="p-8">
                 <h3 className="text-2xl font-bold mb-4">Featured Project Title</h3>
                 <p className="text-gray-300 mb-6">
-                  A more detailed description of your featured project. What inspired you to build it?
-                  What challenges did you overcome? What impact does it have?
+                  description of featured project.
                 </p>
                 <div className="flex gap-4 mb-6">
                   {["React", "Node.js", "MongoDB"].map((tech) => (
