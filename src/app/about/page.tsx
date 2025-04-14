@@ -63,14 +63,12 @@ export default function About() {
               <span className="text-gray-300">Collegeville, PA</span>
             </div>
             <p className="text-lg text-gray-300 mb-8 leading-relaxed">
-              I am a data analyst with a strong background in data mining, deep learning, 
-              and machine learning. With hands-on experience in predictive analytics, database management, 
-              and advanced modeling techniques, I specialize in uncovering actionable insights to drive 
-              key business decisions. My expertise includes working with SQL, Python, TensorFlow, 
-              and Azure Data Studio, alongside a solid foundation in data visualization and algorithm development. 
-              I am passionate about leveraging data-driven solutions to solve complex problems and continuously 
-              enhance performance metrics. Currently, I am expanding my knowledge in deep learning and developing 
-              projects that showcase my technical skills, including image captioning models and interactive web applications.
+              I am a data scientist with a strong background in data mining, deep learning,
+              statistical modeling, and software development. With hands-on experience in predictive analytics, database management, 
+              and advanced modeling techniques, I specialize in uncovering actionable insights from all types of data.
+              My primary coding language is Python, however I am also proficient in R, SQL, and TypeScript.
+              I am passionate about leveraging my skills to solve complex problems and uncover hidden insights from all things I encounter. 
+              I enjoy working on new projects that challenge my skills and expand my knowledge.
             </p>
 
             <div className="space-y-8">
