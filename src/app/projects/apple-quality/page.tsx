@@ -1,8 +1,3 @@
-import dynamic from 'next/dynamic';
-import path from 'path';
-
-const NotebookViewer = dynamic(() => import('@/app/projects/components/NotebookViewer'), { ssr: false });
-
 export default function AppleQualityProject() {
   return (
     <div className="max-w-4xl mx-auto py-12 px-4">
@@ -19,4 +14,4 @@ export default function AppleQualityProject() {
       </div>
     </div>
   );
-} 
+}
