@@ -73,13 +73,14 @@ function clamp(str: string | undefined, max: number): string | undefined {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Allowed origins — add your production domain(s) here               */
+/*  Allowed origins                                                    */
+/*  Set ALLOWED_ORIGINS env var as a comma-separated list, e.g.        */
+/*  "https://my-site.run.app,https://example.com"                      */
+/*  Falls back to a sensible default for local dev.                    */
 /* ------------------------------------------------------------------ */
-const ALLOWED_ORIGINS = [
-  'http://localhost:3000',
-  'https://alex-berger.me',
-  'https://www.alex-berger.me',
-];
+const ALLOWED_ORIGINS: string[] = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+  : ['http://localhost:3000'];
 
 /* ------------------------------------------------------------------ */
 /*  POST handler                                                       */
