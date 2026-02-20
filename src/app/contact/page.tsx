@@ -45,7 +45,7 @@ export default function Contact() {
         type: 'success',
         message: 'Message sent successfully! I will get back to you soon.',
       });
-    } catch (error) {
+    } catch {
       setFormStatus({
         type: 'error',
         message: 'Failed to send message. Please try again.',
