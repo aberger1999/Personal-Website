@@ -1,5 +1,4 @@
 import { projects } from './projectsData';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Github, ExternalLink } from 'lucide-react';
 
@@ -42,30 +41,17 @@ export default async function Projects() {
       <div className="container mx-auto px-4 py-16">
         <h1 className="text-5xl font-bold mb-4">My Projects</h1>
         <p className="text-xl text-gray-300 mb-12">
-          Here are some of the projects I've worked on. Each one taught me something new.
+          Here are some of my projects that I have worked on.
         </p>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {projects.map((project, index) => (
             <div
               key={index}
-              className="bg-gray-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition duration-300 flex flex-col"
+              className="bg-gray-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition duration-300 flex flex-col h-full shadow-lg"
             >
-              {project.image ? (
-                <div className="relative h-48">
-                  <Image
-                    src={project.image}
-                    alt={project.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="h-48 bg-gray-700 flex items-center justify-center text-gray-400">
-                  No Image
-                </div>
-              )}
-              <div className="p-6 flex-1 flex flex-col">
-                <h3 className="text-xl font-bold mb-2">{project.name}</h3>
+              {/* Title and description at the top */}
+              <div className="p-6 flex-1 flex flex-col justify-start">
+                <h3 className="text-xl font-bold mb-2 text-white">{project.name}</h3>
                 <p className="text-gray-300 mb-4">{project.description}</p>
                 <div className="flex gap-4 mt-auto">
                   {project.github && (
@@ -88,6 +74,14 @@ export default async function Projects() {
                     >
                       <ExternalLink size={20} />
                       <span>Demo</span>
+                    </Link>
+                  )}
+                  {project.slug && (
+                    <Link
+                      href={`/projects/${project.slug}`}
+                      className="text-blue-400 hover:text-blue-300 transition duration-200 flex items-center gap-1 text-base font-medium"
+                    >
+                      View Project
                     </Link>
                   )}
                 </div>
