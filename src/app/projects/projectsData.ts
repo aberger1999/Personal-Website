@@ -36,9 +36,11 @@ export const projects: Project[] = [
     internal: false,
   },
   {
-    name: "Data Mining Project",
-    description: "A project focused on data mining techniques.",
-    internal: false,
+    name: "Data Mining with Apriori and Brute Force Algorithms",
+    description: "A comparison of Apriori and Brute Force algorithms for frequent itemset mining using SQL transaction data and Python implementations.",
+    slug: "data-mining-apriori-brute-force",
+    github: "https://github.com/aberger1999/Data-Mining-with-Apriori-and-Brute-Force-Algorithms---A-Comparison",
+    internal: true,
   },
   {
     name: "Personal Dashboard (news scrapper)",
@@ -52,9 +54,11 @@ export const projects: Project[] = [
     internal: false,
   },
   {
-    name: "Another Data mining project with algorithms",
-    description: "A second data mining project with various algorithms.",
-    internal: false,
+    name: "Data Mining with Algorithms – Random Forest and SVM",
+    description: "Data mining using Random Forest and Support Vector Machine algorithms on loan approval, user behavior, and weather classification datasets.",
+    slug: "data-mining-rf-svm",
+    github: "https://github.com/aberger1999/Data-Mining-with-Algorithms---Random-Forest-and-Support-Vector-Machine",
+    internal: true,
   },
   {
     name: "Finance app",

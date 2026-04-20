@@ -19,6 +19,7 @@ export default function Contact() {
       const payload = {
         name: formData.get('name'),
         email: formData.get('email'),
+        website: formData.get('website'),
         phone: formData.get('phone') || null,
         subject: formData.get('subject'),
         contactMethod: formData.get('contactMethod'),
@@ -65,6 +66,18 @@ export default function Contact() {
 
         <div className="bg-gray-800 rounded-2xl shadow-xl p-8">
           <form id="contactForm" action={handleSubmit} className="space-y-8">
+            {/* Hidden honeypot field to catch automated form bots. */}
+            <div className="hidden" aria-hidden="true">
+              <label htmlFor="website">Website</label>
+              <input
+                type="text"
+                id="website"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
+
             {/* Name and Email */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>

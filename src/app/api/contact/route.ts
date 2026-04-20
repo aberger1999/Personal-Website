@@ -1,28 +1,82 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import nodemailer from 'nodemailer';
+import { isIP } from 'node:net';
 
 /* ------------------------------------------------------------------ */
-/*  Rate limiter — in-memory sliding window per IP                     */
-/*  Allows MAX_REQUESTS per WINDOW_MS. Resets automatically.           */
+/*  Rate limiting                                                      */
+/*  In-memory sliding windows with periodic cleanup to avoid unbounded */
+/*  memory growth from random/spoofed identifiers.                     */
 /* ------------------------------------------------------------------ */
-const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-const MAX_REQUESTS = 5;
+const IP_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const MAX_REQUESTS_PER_IP = 5;
 
-const requestLog = new Map<string, number[]>();
+const EMAIL_WINDOW_MS = 30 * 60 * 1000; // 30 minutes
+const MAX_REQUESTS_PER_EMAIL = 3;
 
-function isRateLimited(ip: string): boolean {
+const GLOBAL_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+const MAX_GLOBAL_REQUESTS = 40;
+
+const MAX_TRACKED_KEYS = 5000;
+const CLEANUP_EVERY_N_REQUESTS = 200;
+
+interface RateBucket {
+  timestamps: number[];
+  lastSeen: number;
+}
+
+const ipRequestLog = new Map<string, RateBucket>();
+const emailRequestLog = new Map<string, RateBucket>();
+const globalRequestLog = new Map<string, RateBucket>();
+
+let requestCounter = 0;
+
+function isRateLimited(
+  requestLog: Map<string, RateBucket>,
+  key: string,
+  windowMs: number,
+  maxRequests: number
+): boolean {
   const now = Date.now();
-  const timestamps = requestLog.get(ip) ?? [];
+  const bucket = requestLog.get(key) ?? { timestamps: [], lastSeen: now };
 
   // Drop entries outside the current window
-  const recent = timestamps.filter((t) => now - t < WINDOW_MS);
-  requestLog.set(ip, recent);
+  bucket.timestamps = bucket.timestamps.filter((timestamp) => now - timestamp < windowMs);
+  bucket.lastSeen = now;
+  requestLog.set(key, bucket);
 
-  if (recent.length >= MAX_REQUESTS) return true;
+  if (bucket.timestamps.length >= maxRequests) return true;
 
-  recent.push(now);
+  bucket.timestamps.push(now);
   return false;
+}
+
+function cleanupRateLog(log: Map<string, RateBucket>, windowMs: number) {
+  const now = Date.now();
+
+  for (const [key, bucket] of log.entries()) {
+    if (now - bucket.lastSeen > windowMs * 2) {
+      log.delete(key);
+    }
+  }
+
+  // Keep an upper bound in case attackers spray random identifiers.
+  if (log.size <= MAX_TRACKED_KEYS) return;
+
+  const oldestFirst = [...log.entries()].sort((a, b) => a[1].lastSeen - b[1].lastSeen);
+  const excess = log.size - MAX_TRACKED_KEYS;
+  for (let i = 0; i < excess; i += 1) {
+    log.delete(oldestFirst[i][0]);
+  }
+}
+
+function maybeCleanupRateLogs() {
+  requestCounter += 1;
+  if (requestCounter % CLEANUP_EVERY_N_REQUESTS !== 0) return;
+
+  cleanupRateLog(ipRequestLog, IP_WINDOW_MS);
+  cleanupRateLog(emailRequestLog, EMAIL_WINDOW_MS);
+  cleanupRateLog(globalRequestLog, GLOBAL_WINDOW_MS);
 }
 
 /* ------------------------------------------------------------------ */
@@ -41,6 +95,7 @@ interface ContactFormData {
   contactTime?: string;
   socialLinks?: string;
   source?: string;
+  website?: string; // Honeypot field (must remain empty)
   message: string;
   copyToSender?: boolean;
 }
@@ -52,8 +107,8 @@ function validateEmail(email: string): boolean {
 /** Strip HTML-sensitive chars and collapse any CR/LF to prevent header injection */
 function sanitizeInput(str: string): string {
   return str
-    .replace(/[\r\n]+/g, ' ')   // prevent email header injection
-    .replace(/[<>"'&]/g, '')     // strip HTML-sensitive characters
+    .replace(/[\r\n]+/g, ' ') // prevent email header injection
+    .replace(/[<>"'&]/g, '') // strip HTML-sensitive characters
     .trim();
 }
 
@@ -67,9 +122,48 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#039;');
 }
 
-/** Enforce a max length on any field to prevent oversized payloads */
-function clamp(str: string | undefined, max: number): string | undefined {
-  return str ? str.slice(0, max) : undefined;
+function sanitizeAndClamp(str: string | undefined, max: number): string | undefined {
+  return str ? sanitizeInput(str).slice(0, max) : undefined;
+}
+
+function readString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+function isSenderCopyEnabled(): boolean {
+  const rawValue = process.env.ENABLE_SENDER_COPY;
+  if (rawValue === undefined) return true; // Safe default: honor checkbox behavior unless explicitly disabled.
+
+  const normalized = rawValue.trim().toLowerCase();
+  return normalized !== 'false' && normalized !== '0' && normalized !== 'no' && normalized !== 'off';
+}
+
+function redactEmailForLogs(email: string): string {
+  const [localPart, domain] = email.split('@');
+  if (!localPart || !domain) return '[invalid-email]';
+
+  const visiblePrefix = localPart.slice(0, 2);
+  return `${visiblePrefix}***@${domain}`;
+}
+
+function getSafeErrorMeta(error: unknown) {
+  if (!(error instanceof Error)) {
+    return { message: 'Unknown non-Error throw value' };
+  }
+
+  const maybeNodemailerError = error as Error & {
+    code?: string;
+    command?: string;
+    responseCode?: number;
+  };
+
+  return {
+    name: error.name,
+    message: error.message,
+    code: maybeNodemailerError.code,
+    command: maybeNodemailerError.command,
+    responseCode: maybeNodemailerError.responseCode,
+  };
 }
 
 /* ------------------------------------------------------------------ */
@@ -78,29 +172,75 @@ function clamp(str: string | undefined, max: number): string | undefined {
 /*  "https://my-site.run.app,https://example.com"                      */
 /*  Falls back to a sensible default for local dev.                    */
 /* ------------------------------------------------------------------ */
-const ALLOWED_ORIGINS: string[] = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
-  : ['http://localhost:3000'];
+function getAllowedOrigins(request: NextRequest): Set<string> {
+  const allowedOrigins = new Set<string>();
+  const envOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
+    : [];
+
+  for (const origin of envOrigins) {
+    allowedOrigins.add(origin);
+  }
+
+  // Always allow the current host origin for same-site requests.
+  if (request.nextUrl.origin) {
+    allowedOrigins.add(request.nextUrl.origin);
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    allowedOrigins.add('http://localhost:3000');
+  }
+
+  return allowedOrigins;
+}
+
+function getClientIp(request: NextRequest): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  const realIp = request.headers.get('x-real-ip');
+  const ipCandidate = forwarded?.split(',')[0]?.trim() ?? realIp?.trim() ?? 'unknown';
+
+  // Ignore malformed values so spoofed garbage does not create endless map keys.
+  return isIP(ipCandidate) ? ipCandidate : 'unknown';
+}
 
 /* ------------------------------------------------------------------ */
 /*  POST handler                                                       */
 /* ------------------------------------------------------------------ */
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+
   try {
     // --- Origin validation ---
-    const origin = request.headers.get('origin') ?? '';
-    if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+    const allowedOrigins = getAllowedOrigins(request);
+    const origin = request.headers.get('origin');
+    if (!origin || !allowedOrigins.has(origin)) {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 }
       );
     }
 
-    // --- Rate limiting ---
-    const forwarded = request.headers.get('x-forwarded-for');
-    const ip = forwarded?.split(',')[0]?.trim() ?? request.headers.get('x-real-ip') ?? 'unknown';
+    const contentType = request.headers.get('content-type') ?? '';
+    if (!contentType.toLowerCase().startsWith('application/json')) {
+      return NextResponse.json(
+        { error: 'Unsupported media type' },
+        { status: 415 }
+      );
+    }
 
-    if (isRateLimited(ip)) {
+    // --- Rate limiting ---
+    const ip = getClientIp(request);
+
+    const globallyLimited = isRateLimited(
+      globalRequestLog,
+      'global',
+      GLOBAL_WINDOW_MS,
+      MAX_GLOBAL_REQUESTS
+    );
+    const ipLimited = isRateLimited(ipRequestLog, ip, IP_WINDOW_MS, MAX_REQUESTS_PER_IP);
+    maybeCleanupRateLogs();
+
+    if (globallyLimited || ipLimited) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },
         { status: 429 }
@@ -143,14 +283,28 @@ export async function POST(request: NextRequest) {
     }
 
     // --- Validate required fields ---
-    if (!data.name?.trim() || !data.email?.trim() || !data.message?.trim()) {
+    const name = readString(data.name);
+    const email = readString(data.email);
+    const message = readString(data.message);
+    const website = readString(data.website);
+
+    // Honeypot field: bots often fill hidden fields; real users should leave it empty.
+    if (website && website.trim().length > 0) {
+      return NextResponse.json(
+        { error: 'Invalid request' },
+        { status: 400 }
+      );
+    }
+
+    if (!name?.trim() || !email?.trim() || !message?.trim()) {
       return NextResponse.json(
         { error: 'Name, email, and message are required fields' },
         { status: 400 }
       );
     }
 
-    if (!validateEmail(data.email)) {
+    const normalizedEmail = sanitizeInput(email).slice(0, MAX_FIELD_LENGTH).toLowerCase();
+    if (!validateEmail(normalizedEmail)) {
       return NextResponse.json(
         { error: 'Please provide a valid email address' },
         { status: 400 }
@@ -159,17 +313,32 @@ export async function POST(request: NextRequest) {
 
     // --- Sanitize & clamp all inputs ---
     const sanitizedData = {
-      name: sanitizeInput(data.name).slice(0, MAX_FIELD_LENGTH),
-      email: sanitizeInput(data.email).slice(0, MAX_FIELD_LENGTH),
-      phone: clamp(data.phone, MAX_FIELD_LENGTH),
-      subject: data.subject ? sanitizeInput(data.subject).slice(0, MAX_FIELD_LENGTH) : undefined,
-      contactMethod: clamp(data.contactMethod, MAX_FIELD_LENGTH),
-      contactTime: clamp(data.contactTime, MAX_FIELD_LENGTH),
-      socialLinks: data.socialLinks ? sanitizeInput(data.socialLinks).slice(0, MAX_FIELD_LENGTH) : undefined,
-      source: clamp(data.source, MAX_FIELD_LENGTH),
-      message: sanitizeInput(data.message).slice(0, MAX_MESSAGE_LENGTH),
+      name: sanitizeInput(name).slice(0, MAX_FIELD_LENGTH),
+      email: normalizedEmail,
+      phone: sanitizeAndClamp(readString(data.phone), MAX_FIELD_LENGTH),
+      subject: sanitizeAndClamp(readString(data.subject), MAX_FIELD_LENGTH),
+      contactMethod: sanitizeAndClamp(readString(data.contactMethod), MAX_FIELD_LENGTH),
+      contactTime: sanitizeAndClamp(readString(data.contactTime), MAX_FIELD_LENGTH),
+      socialLinks: sanitizeAndClamp(readString(data.socialLinks), MAX_FIELD_LENGTH),
+      source: sanitizeAndClamp(readString(data.source), MAX_FIELD_LENGTH),
+      message: sanitizeInput(message).slice(0, MAX_MESSAGE_LENGTH),
       copyToSender: data.copyToSender === true,
     };
+
+    const emailLimited = isRateLimited(
+      emailRequestLog,
+      sanitizedData.email,
+      EMAIL_WINDOW_MS,
+      MAX_REQUESTS_PER_EMAIL
+    );
+    maybeCleanupRateLogs();
+
+    if (emailLimited) {
+      return NextResponse.json(
+        { error: 'Too many requests from this email address. Please try again later.' },
+        { status: 429 }
+      );
+    }
 
     const subjectLine = sanitizedData.subject
       ? `Portfolio Contact: ${sanitizedData.subject} from ${sanitizedData.name}`
@@ -227,26 +396,47 @@ ${sanitizedData.message}
       `.trim(),
     };
 
-    if (sanitizedData.copyToSender) {
+    const allowSenderCopy = isSenderCopyEnabled();
+    if (!allowSenderCopy && sanitizedData.copyToSender) {
+      console.info('Sender copy skipped: feature disabled by config', {
+        requestId,
+        recipient: redactEmailForLogs(sanitizedData.email),
+      });
+    }
+
+    if (allowSenderCopy && sanitizedData.copyToSender) {
+      console.info('Sender copy requested', {
+        requestId,
+        recipient: redactEmailForLogs(sanitizedData.email),
+      });
+
       try {
         await transporter.sendMail({
           ...mailOptions,
           to: sanitizedData.email,
           subject: `Copy of your message to Portfolio Contact Form`,
         });
+        console.info('Sender copy sent', { requestId });
       } catch (error) {
-        console.error('Error sending copy to sender:', error);
+        console.error('Error sending copy to sender:', {
+          requestId,
+          error: getSafeErrorMeta(error),
+        });
       }
     }
 
     await transporter.sendMail(mailOptions);
+    console.info('Contact email delivered', { requestId });
 
     return NextResponse.json(
       { message: 'Message sent successfully' },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error processing contact form:', error);
+    console.error('Error processing contact form:', {
+      requestId,
+      error: getSafeErrorMeta(error),
+    });
     return NextResponse.json(
       { error: 'Failed to process your message. Please try again later.' },
       { status: 500 }
