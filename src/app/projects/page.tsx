@@ -1,4 +1,4 @@
-import { projects } from './projectsData';
+import { getProjectsByCategory, projectSections, projects } from './projectsData';
 import Link from 'next/link';
 import { Github, ExternalLink } from 'lucide-react';
 
@@ -28,72 +28,125 @@ export const metadata = {
   title: 'Projects',
 };
 
+const FEATURED_PRODUCT_SLUGS = new Set(['datalens', 'quorex']);
+
 export default async function Projects() {
   // Fetch last updated dates for all projects with GitHub links
-  const lastUpdatedArr = await Promise.all(
-    projects.map((project) =>
-      project.github ? getLastUpdated(project.github) : Promise.resolve(null)
-    )
+  const lastUpdatedEntries = await Promise.all(
+    projects.map(async (project) => {
+      const lastUpdated = project.github ? await getLastUpdated(project.github) : null;
+      return [project.slug, lastUpdated] as const;
+    })
   );
+  const lastUpdatedBySlug = new Map(lastUpdatedEntries);
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="container mx-auto px-4 py-16">
-        <h1 className="text-5xl font-bold mb-4">My Projects</h1>
-        <p className="text-xl text-gray-300 mb-12">
-          Here are some of my projects that I have worked on.
+    <div className="min-h-screen">
+      <div className="container mx-auto px-4 py-20">
+        <h1 className="text-5xl font-bold mb-3">Projects</h1>
+        <p className="text-lg text-gray-300 mb-10 max-w-3xl">
+          A categorized view of my apps, personal builds, and academic work.
         </p>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {projects.map((project, index) => (
-            <div
-              key={index}
-              className="bg-gray-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition duration-300 flex flex-col h-full shadow-lg"
-            >
-              {/* Title and description at the top */}
-              <div className="p-6 flex-1 flex flex-col justify-start">
-                <h3 className="text-xl font-bold mb-2 text-white">{project.name}</h3>
-                <p className="text-gray-300 mb-4">{project.description}</p>
-                <div className="flex gap-4 mt-auto">
-                  {project.github && (
-                    <Link
-                      href={project.github}
-                      className="text-blue-400 hover:text-blue-300 transition duration-200 flex items-center gap-1"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Github size={20} />
-                      <span>Code</span>
-                    </Link>
-                  )}
-                  {project.demo && (
-                    <Link
-                      href={project.demo}
-                      className="text-blue-400 hover:text-blue-300 transition duration-200 flex items-center gap-1"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <ExternalLink size={20} />
-                      <span>Demo</span>
-                    </Link>
-                  )}
-                  {project.slug && (
-                    <Link
-                      href={`/projects/${project.slug}`}
-                      className="text-blue-400 hover:text-blue-300 transition duration-200 flex items-center gap-1 text-base font-medium"
-                    >
-                      View Project
-                    </Link>
-                  )}
+
+        <div className="space-y-10">
+          {projectSections.map((section) => {
+            const sectionProjects = getProjectsByCategory(section.id);
+            if (sectionProjects.length === 0) return null;
+
+            return (
+              <section key={section.id} className="space-y-4">
+                <h2 className="text-3xl font-bold">{section.title}</h2>
+                <p className="text-sm text-gray-400">{section.subtitle}</p>
+
+                <div className="grid gap-5 md:grid-cols-1 lg:grid-cols-2">
+                  {sectionProjects.map((project) => {
+                    const isFeaturedProduct = FEATURED_PRODUCT_SLUGS.has(project.slug);
+
+                    return (
+                      <article
+                        key={project.slug}
+                        className={`rounded-xl overflow-hidden transition duration-300 flex flex-col h-full shadow-lg p-6 ${
+                          isFeaturedProduct
+                            ? 'bg-gradient-to-br from-slate-800 via-blue-900/80 to-indigo-900/80 border border-blue-400/40 ring-1 ring-blue-300/30 hover:scale-[1.02] hover:shadow-blue-500/20'
+                            : 'bg-gray-800 hover:transform hover:scale-105'
+                        }`}
+                      >
+                        <h3 className={`font-bold mb-2 text-white ${isFeaturedProduct ? 'text-2xl' : 'text-xl'}`}>
+                          {project.name}
+                        </h3>
+                        <p className={`mb-4 ${isFeaturedProduct ? 'text-gray-100' : 'text-gray-300'}`}>
+                          {project.description}
+                        </p>
+
+                        <div className="mt-auto flex flex-wrap items-center gap-4">
+                          <div className="flex items-center gap-4">
+                            {project.github ? (
+                              <Link
+                                href={project.github}
+                                className={`transition duration-200 flex items-center gap-1 ${
+                                  isFeaturedProduct
+                                    ? 'text-blue-100 hover:text-white'
+                                    : 'text-blue-400 hover:text-blue-300'
+                                }`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={`Open ${project.name} repository`}
+                              >
+                                <Github size={18} />
+                                <span>Code</span>
+                              </Link>
+                            ) : (
+                              <span
+                                className={`flex items-center gap-1 ${
+                                  isFeaturedProduct ? 'text-gray-200' : 'text-gray-400'
+                                }`}
+                              >
+                                <Github size={18} />
+                                <span>Repo Pending</span>
+                              </span>
+                            )}
+
+                            {project.demo && (
+                              <Link
+                                href={project.demo}
+                                className={`transition duration-200 flex items-center gap-1 ${
+                                  isFeaturedProduct
+                                    ? 'text-blue-100 hover:text-white'
+                                    : 'text-blue-400 hover:text-blue-300'
+                                }`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <ExternalLink size={18} />
+                                <span>Demo</span>
+                              </Link>
+                            )}
+                          </div>
+
+                          <Link
+                            href={`/projects/${project.slug}`}
+                            className={`transition duration-200 flex items-center gap-1 text-base font-medium ${
+                              isFeaturedProduct
+                                ? 'rounded-md bg-white px-3 py-1 text-black hover:bg-gray-200'
+                                : 'text-blue-400 hover:text-blue-300'
+                            }`}
+                          >
+                            View Project
+                          </Link>
+                        </div>
+
+                        {project.github && lastUpdatedBySlug.get(project.slug) && (
+                          <p className={`mt-3 text-xs ${isFeaturedProduct ? 'text-gray-200' : 'text-gray-300'}`}>
+                            Last updated: {lastUpdatedBySlug.get(project.slug)}
+                          </p>
+                        )}
+                      </article>
+                    );
+                  })}
                 </div>
-                {/* Show GitHub last updated info if available */}
-                {project.github && lastUpdatedArr[index] && (
-                  <div className="text-xs text-gray-400 mt-2">
-                    Last updated: <span>{lastUpdatedArr[index]}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+              </section>
+            );
+          })}
         </div>
       </div>
     </div>
