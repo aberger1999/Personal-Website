@@ -9,12 +9,13 @@ export function generateStaticParams() {
   }));
 }
 
-export default function ProjectPlaceholderPage({
+export default async function ProjectPlaceholderPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const project = getProjectBySlug(params.slug);
+  const { slug } = await params;
+  const project = getProjectBySlug(slug);
   if (!project) {
     notFound();
   }
